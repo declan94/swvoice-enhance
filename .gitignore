@@ -1,2 +1,4 @@
+model
 *.pyc
 *.wav
+*.DS_Store

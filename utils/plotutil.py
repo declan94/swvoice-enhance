@@ -1,9 +1,11 @@
 import matplotlib.pyplot as plt
 import numpy as np
 
-def plotTimeFreq(f, t, z):
-    plt.pcolormesh(t, f, np.log10(np.abs(z)))
-    plt.title('STFT Magnitude')
+def plotTimeFreq(f, t, powerDB, show=True):
+    plt.pcolormesh(t, f, powerDB)
+    plt.title('Power [dB]')
     plt.ylabel('Frequency [Hz]')
     plt.xlabel('Time [sec]')
-    plt.show()
+    if show:
+    	plt.show()
+
