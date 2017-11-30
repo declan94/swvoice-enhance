@@ -1,15 +1,16 @@
 from utils import ioutil, waveutil
 from ae.autoencoder import Autoencoder
 from os.path import isfile
+from sklearn import preprocessing
 import numpy as np
 import tensorflow as tf
+
 
 from configs import *
 
 def getRandomBlock(data, batch_size):
     start_index = np.random.randint(0, len(data) - batch_size)
     return data[start_index:(start_index + batch_size)]
-
 
 def trainAE(train_set, n_in, n_hid, training_epochs = 80):
     autoencoder = Autoencoder(
@@ -41,6 +42,8 @@ def trainAE(train_set, n_in, n_hid, training_epochs = 80):
 
 def main(train_dir):
     train_set = ioutil.loadTrainSet(train_dir, window_len, frame_len, vector_frames)
+    scaler = preprocessing.MinMaxScaler(copy=False)
+    scaler.fit_transform(train_set)
     ae = trainAE(train_set, input_len, hidden_len)
     ae.saveModel("model/ae/ae.ckpt")
 
