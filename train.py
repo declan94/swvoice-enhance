@@ -30,11 +30,11 @@ def trainAE(train_set, n_in, n_hid, training_epochs = 80):
             # Fit training using batch data
             cost = autoencoder.partial_fit(batch_xs)
             # Compute average loss
-            avg_cost += cost / total_batch 
+            avg_cost += cost / total_batch / batch_size
 
         # Display logs per epoch step
         if epoch % display_step == 0:
-            print("Epoch:", '%d,' % (epoch + 1), "Cost:", "{:.2f}".format(avg_cost))
+            print("Epoch:", '%d,' % (epoch + 1), "Cost:", "{:.4f}".format(avg_cost))
 
     return autoencoder
 

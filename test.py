@@ -20,8 +20,8 @@ def test(path, outpath):
     autoencoder.loadModel("model/ae/ae.ckpt")
     cnt = db.shape[1]/vector_frames
     in_data = db[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
-    scaler = preprocessing.MinMaxScaler(copy=False)
-    scaler.fit_transform(in_data)
+    scaler = preprocessing.MinMaxScaler()
+    in_data = scaler.fit_transform(in_data)
     out_data = autoencoder.reconstruct(in_data)
     out_data = scaler.inverse_transform(out_data)
     out_db = out_data.reshape(cnt * vector_frames, flen).T
