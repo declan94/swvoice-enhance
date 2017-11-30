@@ -17,7 +17,7 @@ def test(path, outpath):
         aes.append(Autoencoder(n_in, hid))
         n_in = hid
     autoencoder = StackedAE(input_len, aes)
-    autoencoder.loadModel("model/dae.ckpt")
+    autoencoder.loadModel("model/dae/dae.ckpt")
     cnt = db.shape[1]/vector_frames
     in_data = db[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
     out_data = autoencoder.reconstruct(in_data)

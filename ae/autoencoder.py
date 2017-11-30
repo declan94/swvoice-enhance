@@ -1,4 +1,5 @@
 import tensorflow as tf
+from utils import ioutil
 
 class Autoencoder(object):
 
@@ -65,6 +66,7 @@ class Autoencoder(object):
         return weights
 
     def saveModel(self, path):
+        ioutil.ensureDirectory(path)
         self.saver.save(self.sess, path)
 
     def loadModel(self, path):
@@ -141,6 +143,7 @@ class StackedAE(object):
         return cost
 
     def saveModel(self, path):
+        ioutil.ensureDirectory(path)
         tf.train.Saver().save(self.sess, path)
 
     def loadModel(self, path):

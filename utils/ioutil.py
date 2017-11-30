@@ -2,13 +2,13 @@ import scipy.io.wavfile as wavfile
 import cPickle
 import waveutil
 import numpy as np
-from os import listdir
-from os.path import isfile, join
+import os
+import os.path
 
 
 def listWaveFiles(dirpath):
-	paths = [join(dirpath, f) for f in listdir(dirpath)]
-	wavpaths = [p for p in paths if isfile(p) and p[-4:] == '.wav']
+	paths = [os.path.join(dirpath, f) for f in os.listdir(dirpath)]
+	wavpaths = [p for p in paths if os.path.isfile(p) and p[-4:] == '.wav']
 	return wavpaths
 
 def loadWaveFile(filepath):
@@ -31,7 +31,7 @@ def loadData(filepath):
 		return cPickle.load(inputPkl)
 
 def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
-    if cache != None and isfile(cache):
+    if cache != None and os.path.isfile(cache):
         return loadData(cache)
     flen = window_len/2 + 1
     first = True
@@ -49,3 +49,8 @@ def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
     if cache != None:
         saveData(train_set, cache)
     return train_set
+
+def ensureDirectory(path):
+    directory = os.path.dirname(path)
+    if not os.path.exists(directory):
+        os.makedirs(directory)

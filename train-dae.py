@@ -53,7 +53,7 @@ def train(train_set):
 def main(train_dir):
     train_set = ioutil.loadTrainSet(train_dir, window_len, frame_len, vector_frames)
     dae = train(train_set)
-    dae.saveModel("model/dae.ckpt")
+    dae.saveModel("model//dae/dae.ckpt")
 
 
 if __name__ == '__main__':

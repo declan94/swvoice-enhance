@@ -42,7 +42,7 @@ def trainAE(train_set, n_in, n_hid, training_epochs = 80):
 def main(train_dir):
     train_set = ioutil.loadTrainSet(train_dir, window_len, frame_len, vector_frames)
     ae = trainAE(train_set, input_len, hidden_len)
-    ae.saveModel("model/ae.ckpt")
+    ae.saveModel("model/ae/ae.ckpt")
 
 
 if __name__ == '__main__':
