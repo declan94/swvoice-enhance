@@ -26,7 +26,6 @@ def test(path, outpath):
     out_data = scaler.inverse_transform(out_data)
     out_db = out_data.reshape(cnt * vector_frames, flen).T
     out_Zxx = waveutil.powerAngle2STFT(out_db, an[:,:out_db.shape[1]])
-    # out_Zxx = Zxx
     out_t, out_x = waveutil.calcISTFT(out_Zxx, window_len, frame_len)
     ioutil.saveWaveFile(out_x, outpath)
     plt.subplot(1, 2, 1)
@@ -35,7 +34,6 @@ def test(path, outpath):
     plotutil.plotTimeFreq(f, t[:out_db.shape[1]], out_db)
 
 if __name__ == '__main__':
-    print sys.argv
     inputfile = "test.wav"
     outputfile = None
     if len(sys.argv) > 1:
@@ -47,3 +45,4 @@ if __name__ == '__main__':
     if outputfile == None:
         outputfile = inputfile[:-4] + "_out.wav"
     test(inputfile, outputfile)
+

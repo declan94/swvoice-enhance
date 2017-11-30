@@ -34,9 +34,9 @@ class Autoencoder(object):
 
     def _initialize_weights(self):
         all_weights = dict()
-        # all_weights['encoding_w'] = tf.get_variable("encoding_w", shape=[self.n_input, self.n_hidden],
-            # initializer=tf.contrib.layers.xavier_initializer())
-        all_weights['encoding_w'] = tf.Variable(tf.random_normal([self.n_input, self.n_hidden], dtype=tf.float32))
+        all_weights['encoding_w'] = tf.get_variable("encoding_w", shape=[self.n_input, self.n_hidden],
+            initializer=tf.contrib.layers.xavier_initializer())
+        # all_weights['encoding_w'] = tf.Variable(tf.random_normal([self.n_input, self.n_hidden], dtype=tf.float32))
         all_weights['encoding_b'] = tf.Variable(tf.zeros([self.n_hidden], dtype=tf.float32))
         all_weights['decoding_w'] = tf.Variable(tf.zeros([self.n_hidden, self.n_input], dtype=tf.float32))
         all_weights['decoding_b'] = tf.Variable(tf.zeros([self.n_input], dtype=tf.float32))
