@@ -1,5 +1,5 @@
 from utils import ioutil, waveutil, plotutil
-from ae.autoencoder import Autoencoder
+from ae.autoencoder import StackedAE, Autoencoder
 import matplotlib.pyplot as plt
 import tensorflow as tf
 import sys
@@ -11,12 +11,13 @@ def test(path, outpath):
     x = ioutil.loadWaveFile(path)
     f, t, Zxx = waveutil.calcSTFT(x, window_len, frame_len)
     db, an = waveutil.stft2powerAngle(Zxx)
-    autoencoder = Autoencoder(
-        n_input=input_len,
-        n_hidden=hidden_len,
-        transfer_function=tf.nn.softplus,
-        optimizer=tf.train.AdamOptimizer(learning_rate=0.001))
-    autoencoder.loadModel("model/ae.ckpt")
+    aes = []
+    n_in = input_len
+    for hid in hidden_lens:
+        aes.append(Autoencoder(n_in, hid))
+        n_in = hid
+    autoencoder = StackedAE(input_len, aes)
+    autoencoder.loadModel("model/dae.ckpt")
     cnt = db.shape[1]/vector_frames
     in_data = db[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
     out_data = autoencoder.reconstruct(in_data)

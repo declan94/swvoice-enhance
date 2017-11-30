@@ -17,9 +17,10 @@ def powerAngle2STFT(powerDB, angle):
     amp = np.sqrt(power)
     return amp * np.exp(1j * angle)
 
-def calcISTFT(Zxx, windowLen, frameLen):
+def calcISTFT(Zxx, windowLen, frameLen, dtype=np.int16):
     overlap = windowLen - frameLen
     t, x = signal.istft(Zxx, fs=8000, window="hamming", nperseg=windowLen, noverlap=overlap)
+    x = dtype(x)
     return (t, x)
 
 
