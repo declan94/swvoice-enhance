@@ -1,16 +1,29 @@
 import tensorflow as tf
 from utils import ioutil
+from os.path import join
+
+def _get_weights_for_name(name, n_input, n_hidden):
+    all_weights = dict()
+    all_weights['encoding_w'] = tf.get_variable(name + "-encoding_w", shape=[n_input, n_hidden], initializer=tf.contrib.layers.xavier_initializer())
+    all_weights['encoding_b'] = tf.get_variable(name + "-encoding_b", shape=[n_hidden], initializer=tf.zeros_initializer())
+    all_weights['decoding_w'] = tf.get_variable(name + "-decoding_w", shape=[n_hidden, n_input], initializer=tf.contrib.layers.xavier_initializer())
+    all_weights['decoding_b'] = tf.get_variable(name + "-decoding_b", shape=[n_input], initializer=tf.zeros_initializer())
+    return all_weights
+
+def _get_weights_names(name):
+    return [name+"-encoding_w", name+"-encoding_b", name+"-decoding_w", name+"-decoding_b"]
 
 class Autoencoder(object):
 
-    def __init__(self, n_input, n_hidden, transfer_function=tf.nn.softplus, optimizer = tf.train.AdamOptimizer()):
+    def __init__(self, n_input, n_hidden, transfer_function=tf.nn.softplus, optimizer = tf.train.AdamOptimizer(), name = "autoencoder"):
         super(Autoencoder, self).__init__()
 
         self.n_input = n_input
         self.n_hidden = n_hidden
         self.transfer = transfer_function
+        self.name = name
 
-        network_weights = self._initialize_weights()
+        network_weights = _get_weights_for_name(name, n_input, n_hidden)
         self.weights = network_weights
 
         # model
@@ -20,10 +33,10 @@ class Autoencoder(object):
         self.reconstruction = tf.add(tf.matmul(self.hidden, self.weights['decoding_w']), self.weights['decoding_b'])
 
         # cost
-        self.cost = 0.5 * tf.reduce_sum(tf.pow(tf.subtract(self.reconstruction, self.y), 2.0))
+        self.cost = 0.5 * tf.reduce_mean(tf.pow(tf.subtract(self.reconstruction, self.y), 2.0))
         self.optimizer = optimizer.minimize(self.cost)
 
-        self.saver = tf.train.Saver()
+        self.saver = tf.train.Saver([self.weights[k] for k in self.weights])
 
         init = tf.global_variables_initializer()
         self.sess = tf.Session()
@@ -31,16 +44,6 @@ class Autoencoder(object):
 
     def __del__( self ):  
          self.sess.close()
-
-    def _initialize_weights(self):
-        all_weights = dict()
-        all_weights['encoding_w'] = tf.get_variable("encoding_w", shape=[self.n_input, self.n_hidden],
-            initializer=tf.contrib.layers.xavier_initializer())
-        # all_weights['encoding_w'] = tf.Variable(tf.random_normal([self.n_input, self.n_hidden], dtype=tf.float32))
-        all_weights['encoding_b'] = tf.Variable(tf.zeros([self.n_hidden], dtype=tf.float32))
-        all_weights['decoding_w'] = tf.Variable(tf.zeros([self.n_hidden, self.n_input], dtype=tf.float32))
-        all_weights['decoding_b'] = tf.Variable(tf.zeros([self.n_input], dtype=tf.float32))
-        return all_weights
 
     def partial_fit(self, X, Y = None):
         if Y == None:
@@ -65,24 +68,25 @@ class Autoencoder(object):
             weights[k] = self.sess.run(self.weights[k])
         return weights
 
-    def saveModel(self, path):
+    def save_model(self, path):
+        path = join(path, self.name)
         ioutil.ensureDirectory(path)
         self.saver.save(self.sess, path)
 
-    def loadModel(self, path):
+    def load_model(self, path):
+        path = join(path, self.name)
         self.saver.restore(self.sess, path)
 
 class StackedAE(object):
     """Stacked Autoencoder"""
     
-    def __init__(self, n_input, aes = [], transfer_function=tf.nn.softplus, optimizer = tf.train.AdamOptimizer()):
+    def __init__(self, n_input, ae_weights = [], transfer_function=tf.nn.softplus, optimizer = tf.train.AdamOptimizer()):
         super(StackedAE, self).__init__()
         self.n_input = n_input
-        self.ae_weights = [ae.get_weights() for ae in aes]
+        self.ae_weights = ae_weights
         self.transfer = transfer_function
-        self.sess = tf.Session()        
         self._optimizer = optimizer
-        if len(aes) > 0:
+        if len(ae_weights) > 0:
             self._buildModel()
 
     def __del__( self ):  
@@ -112,18 +116,20 @@ class StackedAE(object):
             w = tf.Variable(weights['decoding_w'], dtype=tf.float32)
             b = tf.Variable(weights['decoding_b'], dtype=tf.float32)
             decoding_weights.append({"w": w, "b": b})
-            layer = self.transfer(tf.add(tf.matmul(last_layer, w), b))
+            layer = tf.add(tf.matmul(last_layer, w), b)
             last_layer = layer
             decoding_layers.append(layer)
         self.decoding_weights = decoding_weights
         self.decoding_layers = decoding_layers
         self.decoding_output = last_layer
-        
+
         # cost
-        self.cost = 0.5 * tf.reduce_sum(tf.pow(tf.subtract(self.decoding_output, self.y), 2.0))
+        self.cost = 0.5 * tf.reduce_mean(tf.pow(tf.subtract(self.decoding_output, self.y), 2.0))
         self.optimizer = self._optimizer.minimize(self.cost)
 
+        self.saver = tf.train.Saver()
         init = tf.global_variables_initializer()
+        self.sess = tf.Session()
         self.sess.run(init)
 
     def stack_autoencoder(self, ae):
@@ -142,12 +148,12 @@ class StackedAE(object):
         cost, opt = self.sess.run((self.cost, self.optimizer), feed_dict={self.x: X, self.y: Y})
         return cost
 
-    def saveModel(self, path):
+    def save_model(self, path):
         ioutil.ensureDirectory(path)
-        tf.train.Saver().save(self.sess, path)
+        self.saver.save(self.sess, path)
 
-    def loadModel(self, path):
-        tf.train.Saver().restore(self.sess, path)
+    def load_model(self, path):
+        self.saver.restore(self.sess, path)
 
 # class AdditiveGaussianNoiseAutoencoder(object):
 

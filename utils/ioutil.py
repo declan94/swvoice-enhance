@@ -4,6 +4,7 @@ import waveutil
 import numpy as np
 import os
 import os.path
+from sklearn import preprocessing
 
 
 def listWaveFiles(dirpath):
@@ -41,6 +42,8 @@ def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
         db, _ = waveutil.stft2powerAngle(Zxx)
         cnt = db.shape[1]/vector_frames
         train_in = db[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
+        scaler = preprocessing.MinMaxScaler(copy=False)
+        scaler.fit_transform(train_in)
         if first:
             train_set = train_in
             first = False

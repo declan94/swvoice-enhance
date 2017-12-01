@@ -17,7 +17,7 @@ def test(path, outpath):
         n_hidden=hidden_len,
         transfer_function=tf.nn.softplus,
         optimizer=tf.train.AdamOptimizer(learning_rate=0.001))
-    autoencoder.loadModel("model/ae/ae.ckpt")
+    autoencoder.load_model("model/ae")
     cnt = db.shape[1]/vector_frames
     in_data = db[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
     scaler = preprocessing.MinMaxScaler()

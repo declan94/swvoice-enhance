@@ -15,19 +15,20 @@ def train(train_set):
     n_in = input_len
     train_data = train_set
     i = 0
-    aes = []
+    ae_weights = []
     for n_hid in hidden_lens:
-        i = i + 1
         print("Start training autoencoder %d: (%d -> %d)" % (i, n_in, n_hid))
-        ae = trainAE(train_data, n_in, n_hid, 80)
-        aes.append(ae)
+        ae = trainAE(train_data, n_in, n_hid, dae_train_epochs[i], name="ae-{}".format(i))
+        ae_weights.append(ae.get_weights())
         n_in = n_hid
         train_data = ae.encode(train_data)
+        i = i + 1
     
-    dae = StackedAE(input_len, aes)
+    tf.reset_default_graph()
+    dae = StackedAE(input_len, ae_weights)
     print("Start fine tuning")
     n_samples = train_set.shape[0]
-    training_epochs = 80
+    training_epochs = dae_train_epochs[-1]
     batch_size = 256
     display_step = 1
 
@@ -44,7 +45,7 @@ def train(train_set):
 
         # Display logs per epoch step
         if epoch % display_step == 0:
-            print("Epoch:", '%d,' % (epoch + 1), "Cost:", "{:.2f}".format(avg_cost))
+            print("Epoch:", '%d,' % (epoch + 1), "Cost:", "{:.8f}".format(avg_cost))
 
     return dae
 
@@ -53,7 +54,9 @@ def train(train_set):
 def main(train_dir):
     train_set = ioutil.loadTrainSet(train_dir, window_len, frame_len, vector_frames)
     dae = train(train_set)
-    dae.saveModel("model//dae/dae.ckpt")
+    dae.save_model("model/dae/dae.ckpt")
+    # with tf.Session() as sess:
+    #     writer = tf.summary.FileWriter("logs/", sess.graph)
 
 
 if __name__ == '__main__':
