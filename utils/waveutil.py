@@ -8,6 +8,7 @@ def calcSTFT(x, windowLen, frameLen):
 
 def stft2powerAngle(Zxx):
     power = np.abs(Zxx) ** 2
+    power[power==0] = np.min(power[power>0])
     powerDB = 20 * np.log10(power)
     angle = np.angle(Zxx)
     return (powerDB, angle)

@@ -37,6 +37,7 @@ def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
     flen = window_len/2 + 1
     first = True
     for p in listWaveFiles(train_dir):
+        print(p)
         x = loadWaveFile(p)
         _, _, Zxx = waveutil.calcSTFT(x, window_len, frame_len)
         db, _ = waveutil.stft2powerAngle(Zxx)
