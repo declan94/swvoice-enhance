@@ -47,14 +47,20 @@ def train(train_set):
         if epoch % display_step == 0:
             print("Epoch:", '%d,' % (epoch + 1), "Cost:", "{:.8f}".format(avg_cost))
 
+        if epoch > 0 and epoch % 10 == 0:
+            dae.save_model("model/dae/dae.ckpt")
+            print("temp model saved")
+
     return dae
 
 
 
 def main(train_dir):
-    train_set = ioutil.loadTrainSet(train_dir, window_len, frame_len, vector_frames)
+    train_set, scaler = ioutil.loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen)
+    ioutil.saveData(scaler, "model/dae/scaler.pkl")
     dae = train(train_set)
     dae.save_model("model/dae/dae.ckpt")
+    
     # with tf.Session() as sess:
     #     writer = tf.summary.FileWriter("logs/", sess.graph)
 

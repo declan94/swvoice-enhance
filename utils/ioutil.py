@@ -31,6 +31,28 @@ def loadData(filepath):
 	with open(filepath, 'rb') as inputPkl:
 		return cPickle.load(inputPkl)
 
+def loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen = 40, cache=None):
+    if cache != None and os.path.isfile(cache):
+        return loadData(cache)
+    first = True
+    for p in listWaveFiles(train_dir):
+        print(p)
+        x = loadWaveFile(p)
+        f, _, Zxx = waveutil.calcSTFT(x, window_len, frame_len)
+        f, mels = waveutil.melFilter(f, Zxx, flen)
+        cnt = mels.shape[1]/vector_frames
+        train_in = mels[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
+        scaler = preprocessing.MinMaxScaler(copy=False)
+        scaler.fit_transform(train_in)
+        if first:
+            train_set = train_in
+            first = False
+        else:
+            train_set = np.concatenate((train_set, train_in), axis=0)
+    if cache != None:
+        saveData(train_set, cache)
+    return (train_set, scaler)
+
 def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
     if cache != None and os.path.isfile(cache):
         return loadData(cache)
