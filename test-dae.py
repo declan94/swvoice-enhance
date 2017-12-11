@@ -29,7 +29,7 @@ def rebuildModel():
 
 def calcDiffImg(mels_b, mels_out_b):
     diff_img = np.logical_xor(mels_b, mels_out_b)
-    diff_img[np.sum(mels_bs, axis=1) > mels_bs.shape[1] * 0.8, :] = 1
+    diff_img[np.sum(mels_b, axis=1) > mels_b.shape[1] * 0.8, :] = 1
     return diff_img
 
 def test_mos(path, outpath):
