@@ -8,9 +8,9 @@ vector_frames = 7
 input_len = vector_frames * flen
 
 # simple autoencoder
-hidden_len = 80
+hidden_len = 40
 train_epochs = 100
 
 # stacked deep autoencoder
-hidden_lens = [400, 100, 20]
-dae_train_epochs = [100, 50, 50, 100]
+hidden_lens = [200, 120, 60]
+dae_train_epochs = [80, 50, 50, 100]

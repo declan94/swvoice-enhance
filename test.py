@@ -34,31 +34,52 @@ def test(path, outpath):
         f, mels = waveutil.melFilter(f, Zxx, flen)
         cnt = mels.shape[1]/vector_frames
         test_in = mels[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
-        test_in = scaler.fit_transform(test_in)
+        test_in = scaler.transform(test_in)
         test_out = autoencoder.reconstruct(test_in)
-        mels_out = test_out.reshape(cnt * vector_frames, flen).T
-        diff = np.mean(np.abs(test_out - test_in))
+        mels_out = scaler.inverse_transform(test_out)
+        mels_out = mels_out.reshape(cnt * vector_frames, flen).T
+
+        t = t[:mels_out.shape[1]]
+        mels = mels[:, :mels_out.shape[1]]
+        
+        cents = [70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90]
+        mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
+        mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
+        diff_imgs = [np.logical_xor(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
+        diffs = [float(np.sum(diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
+        diff = min(diffs)
+        i = diffs.index(diff)
+        
+        # diff = np.sum(diff_img)
+        # diff = np.mean(np.abs(test_out - test_in))
+        
         test_data.append({'path': p, 'mos': mos, 'diff': diff})
         print(mos, diff)
+        plt.figure(figsize=(15, 5))
         plt.subplot(1, 3, 1)
         plotutil.plotTimeFreq(f, t, mels)
         plt.subplot(1, 3, 2)
-        plotutil.plotTimeFreq(f, t[:mels_out.shape[1]], mels_out)
+        plotutil.plotTimeFreq(f, t, mels_out)
         plt.subplot(1, 3, 3)
-        plotutil.plotTimeFreq(f, t[:mels_out.shape[1]], np.abs(mels[:,:mels_out.shape[1]]-mels_out))
+        plotutil.plotTimeFreq(f, t, abs(mels-mels_out))
         plt.savefig(os.path.join(outpath, name[:-4] + ".jpg"))
         plt.close()
+
     ioutil.saveData(test_data, os.path.join(outpath, "data.pkl"))
     mos = np.array([d['mos'] for d in test_data])
     diff = np.array([d['diff'] for d in test_data])
     z = np.polyfit(diff, mos, 1)
     p = np.poly1d(z)
     pred_mos = p(diff)
+    mmos = np.mean(mos)
+    ms = np.mean(diff)
+    rho = -np.sum((mos - mmos) * (diff - ms)) / np.sqrt( np.sum((mos - mmos) ** 2) * np.sum((diff - ms) ** 2))
+    print "rho: ", rho
     plt.plot(diff, mos, 'b.')
     plt.plot(diff, pred_mos, 'r.')
     plt.savefig(os.path.join(outpath, 'regress.jpg'))
-    plt.show()
-    
+
+
     
 
 if __name__ == '__main__':

@@ -12,13 +12,19 @@ def listWaveFiles(dirpath):
 	wavpaths = [p for p in paths if os.path.isfile(p) and p[-4:] == '.wav']
 	return wavpaths
 
+def cropZeroStart(wav):
+    s = 0
+    while wav[s] == 0:
+        s = s + 1
+    return wav[s:]
+
 def loadWaveFile(filepath):
     sr, wav = wavfile.read(filepath)
-    assert(sr == 8000)
+    assert(sr == 8000)    
     if wav.ndim > 1:
-        return wav[:, 0]
+        return cropZeroStart(wav[:, 0])
     else:
-        return wav
+        return cropZeroStart(wav)
 
 def saveWaveFile(x, filepath):
 	wavfile.write(filepath, 8000, x)
