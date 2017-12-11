@@ -53,7 +53,7 @@ def test_mos(path, outpath):
 
         t = t[:mels_out.shape[1]]
         mels = mels[:, :mels_out.shape[1]]
-        cents = [70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90]
+        cents = range(75, 85)
         mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
         mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
         diff_imgs = [calcDiffImg(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
