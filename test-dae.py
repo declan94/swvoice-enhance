@@ -32,6 +32,7 @@ def test_mos(path, outpath):
     scaler = ioutil.loadData("model/dae/scaler.pkl")
     scaler.set_params(copy=True)
     test_data = []
+
     for p in ioutil.listWaveFiles(path):
         name = os.path.basename(p)
         mos = float(name.split("-", 1)[0])
@@ -47,12 +48,14 @@ def test_mos(path, outpath):
 
         t = t[:mels_out.shape[1]]
         mels = mels[:, :mels_out.shape[1]]
-        
         cents = [70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90]
         mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
         mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
         diff_imgs = [np.logical_xor(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
-        diffs = [float(np.sum(diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
+
+        diff_weights = np.exp(-0.0000005*np.power(f-600, 2))
+        diff_weights = diff_weights / np.sum(diff_weights)
+        diffs = [float(np.dot(diff_weights, diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
         diff = max(diffs)
         i = diffs.index(diff)
         
