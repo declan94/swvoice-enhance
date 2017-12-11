@@ -32,6 +32,10 @@ def calcDiffImg(mels_b, mels_out_b):
     diff_img[np.sum(mels_b, axis=1) > mels_b.shape[1] * 0.8, :] = 1
     return diff_img
 
+def thrMels(mels, cent):
+    thr = float(np.max(mels) * cent + np.min(mels) * (100-cent)) / 100.0
+    return mels > thr
+
 def test_mos(path, outpath):
     dae = rebuildModel()
     scaler = ioutil.loadData("model/dae/scaler.pkl")
@@ -54,8 +58,10 @@ def test_mos(path, outpath):
         t = t[:mels_out.shape[1]]
         mels = mels[:, :mels_out.shape[1]]
         cents = range(75, 85)
-        mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
-        mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
+        # mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
+        # mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
+        mels_bs = [thrMels(mels, cent) for cent in cents]
+        mels_out_bs = [thrMels(mels_out, cent) for cent in cents]
         diff_imgs = [calcDiffImg(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
 
 
@@ -63,7 +69,7 @@ def test_mos(path, outpath):
         # diff_weights = diff_weights / np.sum(diff_weights)
         # diffs = [float(np.sum(np.dot(diff_weights, diff_imgs[i]))) / (100-cents[i]) for i in range(0, len(cents))]
         diffs = [float(np.sum(diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
-        diff = max(diffs)
+        diff = min(diffs)
         i = diffs.index(diff)
         
         # diff = np.sum(diff_img)
