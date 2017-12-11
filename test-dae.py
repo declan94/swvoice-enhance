@@ -53,9 +53,10 @@ def test_mos(path, outpath):
         mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
         diff_imgs = [np.logical_xor(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
 
-        diff_weights = np.exp(-0.0000005*np.power(f-600, 2))
-        diff_weights = diff_weights / np.sum(diff_weights)
-        diffs = [float(np.dot(diff_weights, diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
+        # diff_weights = np.exp(-0.0000005*np.power(f-600, 2))
+        # diff_weights = diff_weights / np.sum(diff_weights)
+        # diffs = [float(np.sum(np.dot(diff_weights, diff_imgs[i]))) / (100-cents[i]) for i in range(0, len(cents))]
+        diffs = [float(np.sum(diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
         diff = max(diffs)
         i = diffs.index(diff)
         
