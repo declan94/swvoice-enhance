@@ -27,6 +27,11 @@ def rebuildModel():
     dae.load_model("model/dae/dae.ckpt")
     return dae
 
+def calcDiffImg(mels_b, mels_out_b):
+    diff_img = np.logical_xor(mels_b, mels_out_b)
+    diff_img[np.sum(mels_bs, axis=1) > mels_bs.shape[1] * 0.8, :] = 1
+    return diff_img
+
 def test_mos(path, outpath):
     dae = rebuildModel()
     scaler = ioutil.loadData("model/dae/scaler.pkl")
@@ -51,7 +56,8 @@ def test_mos(path, outpath):
         cents = [70, 72, 74, 76, 78, 80, 82, 84, 86, 88, 90]
         mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
         mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
-        diff_imgs = [np.logical_xor(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
+        diff_imgs = [calcDiffImg(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
+
 
         # diff_weights = np.exp(-0.0000005*np.power(f-600, 2))
         # diff_weights = diff_weights / np.sum(diff_weights)
