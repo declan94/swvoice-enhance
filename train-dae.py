@@ -56,8 +56,7 @@ def train(train_set):
 
 
 def main(train_dir):
-    train_set, scaler = ioutil.loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen)
-    ioutil.saveData(scaler, "model/dae/scaler.pkl")
+    train_set = ioutil.loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen, 'trainwav/traindata.pkl')
     dae = train(train_set)
     dae.save_model("model/dae/dae.ckpt")
     

@@ -39,6 +39,7 @@ def loadData(filepath):
 
 def loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen = 40, cache=None):
     if cache != None and os.path.isfile(cache):
+        print "Load trainset from cache: ", cache
         return loadData(cache)
     first = True
     for p in listWaveFiles(train_dir):
@@ -48,7 +49,7 @@ def loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen = 40, 
         f, mels = waveutil.melFilter(f, Zxx, flen)
         cnt = mels.shape[1]/vector_frames
         train_in = mels[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
-        scaler = preprocessing.MinMaxScaler(copy=False)
+        scaler = preprocessing.StandardScaler(copy=False)
         scaler.fit_transform(train_in)
         if first:
             train_set = train_in
@@ -57,10 +58,11 @@ def loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen = 40, 
             train_set = np.concatenate((train_set, train_in), axis=0)
     if cache != None:
         saveData(train_set, cache)
-    return (train_set, scaler)
+    return train_set
 
 def loadTrainSet(train_dir, window_len, frame_len, vector_frames, cache=None):
     if cache != None and os.path.isfile(cache):
+        print "Load trainset from cache: ", cache
         return loadData(cache)
     flen = window_len/2 + 1
     first = True

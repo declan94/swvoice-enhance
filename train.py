@@ -47,8 +47,8 @@ def trainAE(train_set, n_in, n_hid, training_epochs = 80, save_interval = 10, na
 
 
 def main(train_dir):
-    train_set, scaler = ioutil.loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen)
-    ioutil.saveData(scaler, "model/ae/scaler.pkl")
+    train_set = ioutil.loadTrainSetMel(train_dir, window_len, frame_len, vector_frames, flen, 'trainwav/traindata.pkl')
+    # ioutil.saveData(scaler, "model/ae/scaler.pkl")
     ae = trainAE(train_set, input_len, hidden_len, train_epochs, 10)
     ae.save_model("model/ae")
     # with tf.Session() as sess:

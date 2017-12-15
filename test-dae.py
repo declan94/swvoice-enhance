@@ -29,8 +29,15 @@ def rebuildModel():
 
 def calcDiffImg(mels_b, mels_out_b):
     diff_img = np.logical_xor(mels_b, mels_out_b)
-    diff_img[np.sum(mels_b, axis=1) > mels_b.shape[1] * 0.8, :] = 1
+    diff_img[np.sum(mels_b, axis=1) >= mels_b.shape[1]*0.9, :] = 1
     return diff_img
+
+def calcDiff(mels_b, mels_out_b):
+    diffImg = calcDiffImg(mels_b, mels_out_b)
+    activeTime = np.sum(mels_b, axis=0) > 1
+    timespan = np.sum(activeTime)
+    # return float(np.sum(diffImg[:,activeTime]) * 200) / timespan
+    return float(np.sum(diffImg[:,activeTime]))
 
 def thrMels(mels, cent):
     thr = float(np.max(mels) * cent + np.min(mels) * (100-cent)) / 100.0
@@ -38,8 +45,10 @@ def thrMels(mels, cent):
 
 def test_mos(path, outpath):
     dae = rebuildModel()
-    scaler = ioutil.loadData("model/dae/scaler.pkl")
-    scaler.set_params(copy=True)
+    # scaler = ioutil.loadData("model/dae/scaler.pkl")
+    # scaler.set_params(copy=True)
+    scaler = preprocessing.StandardScaler()
+    # scaler = preprocessing.MinMaxScaler()
     test_data = []
 
     for p in ioutil.listWaveFiles(path):
@@ -50,7 +59,7 @@ def test_mos(path, outpath):
         f, mels = waveutil.melFilter(f, Zxx, flen)
         cnt = mels.shape[1]/vector_frames
         test_in = mels[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
-        test_in = scaler.transform(test_in)
+        test_in = scaler.fit_transform(test_in)
         test_out = dae.reconstruct(test_in)
         mels_out = scaler.inverse_transform(test_out)
         mels_out = mels_out.reshape(cnt * vector_frames, flen).T
@@ -58,18 +67,14 @@ def test_mos(path, outpath):
         t = t[:mels_out.shape[1]]
         mels = mels[:, :mels_out.shape[1]]
         cents = range(75, 85)
-        # mels_bs = [mels > np.percentile(mels, cent) for cent in cents]
-        # mels_out_bs = [mels_out > np.percentile(mels_out, cent) for cent in cents]
-        mels_bs = [thrMels(mels, cent) for cent in cents]
-        mels_out_bs = [thrMels(mels_out, cent) for cent in cents]
-        diff_imgs = [calcDiffImg(mels_bs[i], mels_out_bs[i]) for i in range(0, len(cents))]
-
-
-        # diff_weights = np.exp(-0.0000005*np.power(f-600, 2))
-        # diff_weights = diff_weights / np.sum(diff_weights)
-        # diffs = [float(np.sum(np.dot(diff_weights, diff_imgs[i]))) / (100-cents[i]) for i in range(0, len(cents))]
-        diffs = [float(np.sum(diff_imgs[i])) / (100-cents[i]) for i in range(0, len(cents))]
-        diff = min(diffs)
+        mels_bs = [mels > max(np.percentile(mels, cent), 0) for cent in cents]
+        mels_out_bs = [mels_out > max(np.percentile(mels_out, cent), 0) for cent in cents]
+        # mels_bs = [thrMels(mels, cent) for cent in cents]
+        # mels_out_bs = [thrMels(mels_out, cent) for cent in cents]
+        
+        diffs = [calcDiff(mels_bs[i], mels_out_bs[i]) / (100-cents[i]) for i in range(0, len(cents))]
+        
+        diff = max(diffs)
         i = diffs.index(diff)
         
         # diff = np.sum(diff_img)
@@ -103,8 +108,9 @@ def test_mos(path, outpath):
 
 def test(path, outpath):
     dae = rebuildModel()
-    scaler = ioutil.loadData("model/dae/scaler.pkl")
-    scaler.set_params(copy=True)
+    # scaler = ioutil.loadData("model/dae/scaler.pkl")
+    # scaler.set_params(copy=True)
+    scaler = preprocessing.StandardScaler()
     test_data = []
     for p in ioutil.listWaveFiles(path):
         name = os.path.basename(p)
@@ -113,7 +119,7 @@ def test(path, outpath):
         f, mels = waveutil.melFilter(f, Zxx, flen)
         cnt = mels.shape[1]/vector_frames
         test_in = mels[:, :cnt*vector_frames].T.reshape(cnt, flen*vector_frames)
-        test_in = scaler.transform(test_in)
+        test_in = scaler.fit_transform(test_in)
         test_out = dae.reconstruct(test_in)
         mels_out = scaler.inverse_transform(test_out)
         mels_out = mels_out.reshape(cnt * vector_frames, flen).T
@@ -141,4 +147,5 @@ if __name__ == '__main__':
     if not os.path.exists(outdir):
         os.makedirs(outdir)
     test_mos(indir, outdir)
+    # test(indir, outdir)
 

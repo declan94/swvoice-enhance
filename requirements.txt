@@ -2,3 +2,5 @@ numpy>=1.13.3
 scipy>=1.0.0
 tensorflow==1.4.0
 tensorflow-tensorboard==0.4.0rc3
+sklearn
+matplotlib
